@@ -30,7 +30,11 @@ from scapy.supersocket import StreamSocket
 from scapy.sendrecv import sniff
 from scapy.utils import hexdump,inet_ntoa,inet_aton
 from scapy.packet import bind_layers
-from scapy.layers.inet import TCP,Raw
+from scapy.layers.inet import TCP
+try:
+    from scapy.layers.inet import Raw
+except ImportError:
+    from scapy.packet import Raw
 from scapy.config import conf
 from ansicolor import red,green,blue,yellow,cyan,magenta
 from pprint import pprint
